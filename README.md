@@ -1,2 +1,3 @@
 # FreeVC
-FreeVC: Towards High-Quality Text-Free One-Shot Voice Conversion
+
+Code will be made public after acceptance or after I get the permission.
