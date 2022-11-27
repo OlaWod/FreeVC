@@ -1,0 +1,2 @@
+title1|DUMMY/p225/p225_001.wav|DUMMY/p226/p226_002.wav
+title2|DUMMY/p226/p226_002.wav|DUMMY/p225/p225_001.wav
