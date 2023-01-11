@@ -29,6 +29,7 @@ We also provide the [pretrained models](https://1drv.ms/u/s!AnvukVnlQ3ZTx1rjrOZ2
 - Code release. (Nov 27, 2022)
 - Online demo at HuggingFace Spaces. (Dec 14, 2022)
 - Supports 24kHz outputs. See [here](https://github.com/OlaWod/FreeVC/tree/main/tips-for-synthesizing-24KHz-wavs-from-16kHz-wavs/) for details. (Dec 15, 2022)
+- Fix data loading bug. (Jan 10, 2023) If there still exists problem please feel free to ping me.🙏
 
 ## Pre-requisites
 
