@@ -15,7 +15,11 @@ from torch.cuda.amp import autocast, GradScaler
 
 import commons
 import utils
-from data_utils_24 import TextAudioSpeakerLoader
+from data_utils_24 import (
+  TextAudioSpeakerLoader,
+  TextAudioSpeakerCollate,
+  DistributedBucketSampler
+)
 from models import (
   SynthesizerTrn,
   MultiPeriodDiscriminator,
@@ -59,13 +63,21 @@ def run(rank, n_gpus, hps):
   torch.cuda.set_device(rank)
 
   train_dataset = TextAudioSpeakerLoader(hps.data.training_files, hps)
+  train_sampler = DistributedBucketSampler(
+      train_dataset,
+      hps.train.batch_size,
+      [32,300,400,500,600,700,800,900,1000],
+      num_replicas=n_gpus,
+      rank=rank,
+      shuffle=True)
+  collate_fn = TextAudioSpeakerCollate(hps)
   train_loader = DataLoader(train_dataset, num_workers=8, shuffle=False, pin_memory=True,
-      batch_size=hps.train.batch_size)
+      collate_fn=collate_fn, batch_sampler=train_sampler)
   if rank == 0:
     eval_dataset = TextAudioSpeakerLoader(hps.data.validation_files, hps)
     eval_loader = DataLoader(eval_dataset, num_workers=8, shuffle=True,
         batch_size=hps.train.batch_size, pin_memory=False,
-        drop_last=False)
+        drop_last=False, collate_fn=collate_fn)
 
   net_g = SynthesizerTrn(
       hps.data.filter_length // 2 + 1,
@@ -116,7 +128,7 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
   if writers is not None:
     writer, writer_eval = writers
 
-  #train_loader.batch_sampler.set_epoch(epoch)
+  train_loader.batch_sampler.set_epoch(epoch)
   global global_step
 
   net_g.train()
