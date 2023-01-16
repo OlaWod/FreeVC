@@ -66,7 +66,7 @@ def stretch(mel, width): # 0.5-2
     return torchvision.transforms.functional.resize(mel, (mel.size(-2), width))
 
 
-def load_checkpoint(checkpoint_path, model, optimizer=None):
+def load_checkpoint(checkpoint_path, model, optimizer=None, strict=False):
   assert os.path.isfile(checkpoint_path)
   checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
   iteration = checkpoint_dict['iteration']
@@ -78,6 +78,8 @@ def load_checkpoint(checkpoint_path, model, optimizer=None):
     state_dict = model.module.state_dict()
   else:
     state_dict = model.state_dict()
+  if strict:
+    assert state_dict.keys() == saved_state_dict.keys(), "Mismatched model config and checkpoint."
   new_state_dict= {}
   for k, v in state_dict.items():
     try:
