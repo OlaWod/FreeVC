@@ -60,7 +60,6 @@ if __name__ == "__main__":
     print("[INFO] spk_embed_out_dir: ", spk_embed_out_dir)
     os.makedirs(spk_embed_out_dir, exist_ok=True)
     
-    
     if os.path.isfile(args.spk_encoder_ckpt):
         encoder = SpeakerEncoder(args.spk_encoder_ckpt)
     else:
