@@ -11,6 +11,7 @@ from functools import partial
 import glob 
 import argparse
 
+
 def build_from_path(in_dir, out_dir, weights_fpath, num_workers=1):
     executor = ProcessPoolExecutor(max_workers=num_workers)
     futures = []
@@ -21,11 +22,12 @@ def build_from_path(in_dir, out_dir, weights_fpath, num_workers=1):
             partial(_compute_spkEmbed, out_dir, wav_path, weights_fpath)))
     return [future.result() for future in tqdm(futures)]
 
-def _compute_spkEmbed(out_dir, wav_path, encoder):
+def _compute_spkEmbed(out_dir, wav_path, weights_fpath):
     utt_id = os.path.basename(wav_path).rstrip(".wav")
     fpath = Path(wav_path)
     wav = preprocess_wav(fpath)
 
+    encoder = SpeakerEncoder(weights_fpath)
     embed = encoder.embed_utterance(wav)
     fname_save = os.path.join(out_dir, f"{utt_id}.npy")
     np.save(fname_save, embed, allow_pickle=False)
@@ -59,12 +61,7 @@ if __name__ == "__main__":
     spk_embed_out_dir = os.path.join(args.out_dir_root, "spk")
     print("[INFO] spk_embed_out_dir: ", spk_embed_out_dir)
     os.makedirs(spk_embed_out_dir, exist_ok=True)
-    
-    if os.path.isfile(args.spk_encoder_ckpt):
-        encoder = SpeakerEncoder(args.spk_encoder_ckpt)
-    else:
-        raise FileNotFoundError(f"{args.spk_encoder_ckpt} was not found or is a directory")
-        
+
     #for data_split in split_list:
     #    sub_folder_list = os.listdir(args.in_dir, data_split) 
     for spk in sub_folder_list:
@@ -73,7 +70,7 @@ if __name__ == "__main__":
         if not os.path.isdir(in_dir): 
             continue
         #out_dir = os.path.join(args.out_dir, spk)
-        preprocess(in_dir, spk_embed_out_dir, spk, encoder, args.num_workers)
+        preprocess(in_dir, spk_embed_out_dir, spk, args.spk_encoder_ckpt, args.num_workers)
     '''
     for data_split in split_list:
         in_dir = os.path.join(args.in_dir, data_split)
@@ -82,6 +79,5 @@ if __name__ == "__main__":
 
     print("DONE!")
     sys.exit(0)
-
 
 
