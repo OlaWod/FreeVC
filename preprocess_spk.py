@@ -11,14 +11,14 @@ from functools import partial
 import glob 
 import argparse
 
-def build_from_path(in_dir, out_dir, weights_fpath, num_workers=1):
+def build_from_path(in_dir, out_dir, encoder, num_workers=1):
     executor = ProcessPoolExecutor(max_workers=num_workers)
     futures = []
     wavfile_paths = glob.glob(os.path.join(in_dir, '*.wav'))
     wavfile_paths= sorted(wavfile_paths)
     for wav_path in wavfile_paths:
         futures.append(executor.submit(
-            partial(_compute_spkEmbed, out_dir, wav_path, weights_fpath)))
+            partial(_compute_spkEmbed, out_dir, wav_path, encoder)))
     return [future.result() for future in tqdm(futures)]
 
 def _compute_spkEmbed(out_dir, wav_path, encoder):
@@ -31,10 +31,10 @@ def _compute_spkEmbed(out_dir, wav_path, encoder):
     np.save(fname_save, embed, allow_pickle=False)
     return os.path.basename(fname_save)
 
-def preprocess(in_dir, out_dir_root, spk, weights_fpath, num_workers):
+def preprocess(in_dir, out_dir_root, spk, encoder, num_workers):
     out_dir = os.path.join(out_dir_root, spk)
     os.makedirs(out_dir, exist_ok=True)
-    metadata = build_from_path(in_dir, out_dir, weights_fpath, num_workers)
+    metadata = build_from_path(in_dir, out_dir, encoder, num_workers)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
