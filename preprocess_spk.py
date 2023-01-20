@@ -25,6 +25,7 @@ def build_from_path(in_dir, out_dir, weights_fpath, num_workers=1):
     return [future.result() for future in tqdm(futures)]
 
 def _compute_spkEmbed(out_dir, wav_path, weights_fpath):
+    global encoder
     utt_id = os.path.basename(wav_path).rstrip(".wav")
     fpath = Path(wav_path)
     wav = preprocess_wav(fpath)
