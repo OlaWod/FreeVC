@@ -18,7 +18,9 @@ def process(wav_name):
         peak = np.abs(wav).max()
         if peak > 1.0:
             wav = 0.98 * wav / peak
-        wav1 = librosa.resample(wav, orig_sr=sr, target_sr=args.sr1)
+        #wav1 = librosa.resample(wav, orig_sr=sr, target_sr=args.sr1)
+        wav1, sr = librosa.load(wav_path, sr=args.sr1)
+        wav1 = wav1[int(index[0]*args.sr1/22050): int(index[1]*args.sr1/22050)]
         save_name = wav_name.replace("_mic2.flac", ".wav")
         save_path1 = os.path.join(args.out_dir1, speaker, save_name)
         wavfile.write(
