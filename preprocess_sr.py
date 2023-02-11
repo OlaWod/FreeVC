@@ -70,8 +70,8 @@ if __name__ == "__main__":
     parser.add_argument("--max", type=int, default=92, help="max")
     parser.add_argument("--config", type=str, default="hifigan/config.json", help="path to config file")
     parser.add_argument("--in_dir", type=str, default="dataset/vctk-22k", help="path to input dir")
-    parser.add_argument("--wav_dir", type=str, default="dataset/rs/wav", help="path to output wav dir")
-    parser.add_argument("--ssl_dir", type=str, default="dataset/rs/wavlm", help="path to output ssl dir")
+    parser.add_argument("--wav_dir", type=str, default="dataset/sr/wav", help="path to output wav dir")
+    parser.add_argument("--ssl_dir", type=str, default="dataset/sr/wavlm", help="path to output ssl dir")
     args = parser.parse_args()
 
     print("Loading WavLM for content...")
