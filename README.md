@@ -29,7 +29,7 @@ We also provide the [pretrained models](https://1drv.ms/u/s!AnvukVnlQ3ZTx1rjrOZ2
 - Code release. (Nov 27, 2022)
 - Online demo at HuggingFace Spaces. (Dec 14, 2022)
 - Supports 24kHz outputs. See [here](https://github.com/OlaWod/FreeVC/tree/main/tips-for-synthesizing-24KHz-wavs-from-16kHz-wavs/) for details. (Dec 15, 2022)
-- Fix data loading bug. (Jan 10, 2023) If there still exists problem please feel free to ping me.🙏
+- Fix data loading bug. (Jan 10, 2023)
 
 ## Pre-requisites
 
@@ -92,3 +92,10 @@ CUDA_VISIBLE_DEVICES=0 python train.py -c configs/freevc.json -m freevc
 # train freevc-s
 CUDA_VISIBLE_DEVICES=2 python train.py -c configs/freevc-s.json -m freevc-s
 ```
+
+## References
+
+- https://github.com/jaywalnut310/vits
+- https://github.com/microsoft/unilm/tree/master/wavlm
+- https://github.com/jik876/hifi-gan
+- https://github.com/liusongxiang/ppg-vc
