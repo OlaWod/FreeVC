@@ -51,10 +51,10 @@ Download the pretrained checkpoints and run:
 
 ```python
 # inference with FreeVC
-CUDA_VISIBLE_DEVICES=0 python convert.py --hpfile logs/freevc.json --ptfile checkpoints/freevc.pth --txtpath convert.txt --outdir outputs/freevc
+CUDA_VISIBLE_DEVICES=0 python convert.py --hpfile configs/freevc.json --ptfile checkpoints/freevc.pth --txtpath convert.txt --outdir outputs/freevc
 
 # inference with FreeVC-s
-CUDA_VISIBLE_DEVICES=0 python convert.py --hpfile logs/freevc-s.json --ptfile checkpoints/freevc-s.pth --txtpath convert.txt --outdir outputs/freevc-s
+CUDA_VISIBLE_DEVICES=0 python convert.py --hpfile configs/freevc-s.json --ptfile checkpoints/freevc-s.pth --txtpath convert.txt --outdir outputs/freevc-s
 ```
 
 ## Training Example
