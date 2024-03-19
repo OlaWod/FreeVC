@@ -103,11 +103,11 @@ tensorboard-data-server==0.7.2
     # via tensorboard
 threadpoolctl==3.3.0
     # via scikit-learn
-torch==2.1.0+cu121
+torch==2.2.0+cu121
     # via
     #   -r requirements.in
     #   torchvision
-torchvision==0.16.0+cu121
+torchvision==0.17.0+cu121
     # via -r requirements.in
 tqdm==4.66.2
     # via -r requirements.in
