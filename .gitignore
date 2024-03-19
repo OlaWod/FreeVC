@@ -4,3 +4,6 @@ dataset
 logs
 outputs
 hifigan/generator_v1
+*.pt
+*.pth
+script.txt
