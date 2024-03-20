@@ -41,7 +41,7 @@ def get_vocoder(rank):
         config = json.load(f)
     config = hifigan.AttrDict(config)
     vocoder = hifigan.Generator(config)
-    ckpt = torch.load("hifigan/generator_v1")
+    ckpt = torch.load("hifigan/generator")
     vocoder.load_state_dict(ckpt["generator"])
     vocoder.eval()
     vocoder.remove_weight_norm()

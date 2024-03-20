@@ -7,7 +7,6 @@ hifigan/generator_v1
 *.pt
 *.pth
 script.txt
-hifigan/do_02500000
-hifigan/g_02500000
+hifigan/*
 VCTK/*
 *.zip
