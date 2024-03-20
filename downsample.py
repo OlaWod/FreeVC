@@ -5,9 +5,10 @@ import numpy as np
 from multiprocessing import Pool, cpu_count
 from scipy.io import wavfile
 from tqdm import tqdm
+from functools import partial
 
 
-def process(wav_name):
+def process(args, wav_name):
     # speaker 's5', 'p280', 'p315' are excluded,
     speaker = wav_name[:4]
     wav_path = os.path.join(args.in_dir, speaker, wav_name)
@@ -47,9 +48,12 @@ if __name__ == "__main__":
 
     pool = Pool(processes=cpu_count()-2)
 
-    for speaker in os.listdir(args.in_dir):
+    # Create a new function with spk_dir already filled in
+    process_with_args = partial(process, args)
+
+    for speaker in tqdm(os.listdir(args.in_dir)):
         spk_dir = os.path.join(args.in_dir, speaker)
         if os.path.isdir(spk_dir):
-            for _ in tqdm(pool.imap_unordered(process, os.listdir(spk_dir))):
+            for _ in pool.imap_unordered(process_with_args, os.listdir(spk_dir)):
                 pass
 

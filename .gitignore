@@ -9,3 +9,5 @@ hifigan/generator_v1
 script.txt
 hifigan/do_02500000
 hifigan/g_02500000
+VCTK/*
+*.zip

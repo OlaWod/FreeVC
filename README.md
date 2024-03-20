@@ -71,7 +71,7 @@ python preprocess_flist.py
 # run this if you want to use pretrained speaker encoder
 CUDA_VISIBLE_DEVICES=0 python preprocess_spk.py
 
-# run this if you want to train without SR-based augmentation
+# run this if you want to train with SR-based augmentation
 CUDA_VISIBLE_DEVICES=0 python preprocess_ssl.py
 
 # run these if you want to train with SR-based augmentation
