@@ -152,12 +152,11 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
 
     with autocast(enabled=hps.train.fp16_run):
       y_hat, ids_slice, z_mask,\
-      (z, z_p, m_p, logs_p, m_q, logs_q) = net_g(c, spec, g=g, mel=mel) # forward
+      (z, z_p, m_p, logs_p, m_q, logs_q) = net_g(c, spec, g=g, mel=mel) # forward, get all outputs before decoder
       # c: audio, spec: spectrogram, g: speaker embedding, mel: mel spectrogram
       # z_p: high-dim normal distribution, should only contain content information
-      # m_p: prior mean, logs_p: prior log of variance
-      # m_q: posterior mean, logs_q: posterior log of variance
-
+      # m_p: prior mean, logs_p: prior log of standard deviation
+      # m_q: posterior mean, logs_q: posterior log of standard deviation
 
       y_mel = commons.slice_segments(mel, ids_slice, hps.train.segment_size // hps.data.hop_length)
       y_hat_mel = mel_spectrogram_torch(
@@ -190,9 +189,12 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
         # F1 distance between real and generated mel-spectrogram, multiplied by a factor
         loss_mel = F.l1_loss(y_mel, y_hat_mel) * hps.train.c_mel
 
-        # KL divergence between prior and posterior
+        # KL divergence between prior and posterior, measure the difference bewteen z' and mu_p, logs_p
         # prior: mean = m_p, log variance = logs_p
         # posterior: mean = z_p, log variance = logs_q
+        # z_p: high-dim normal distribution, should only contain content information
+        # m_p: prior mean, logs_p: prior log of standard deviation
+        # m_q: posterior mean, logs_q: posterior log of standard deviation
         loss_kl = kl_loss(z_p, logs_q, m_p, logs_p, z_mask) * hps.train.c_kl
 
         loss_fm = feature_loss(fmap_r, fmap_g)

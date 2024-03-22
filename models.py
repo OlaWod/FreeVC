@@ -78,7 +78,9 @@ class Encoder(nn.Module):
     m, logs = torch.split(stats, self.out_channels, dim=1) # split to mean and log of sigma
     
     # m plus a random tensor (sampled from standard normal distribution, with the same size as m), scaled by the exponential of logs to m
+    # z is a single sample of the multi-dim normal distribution, with mean m and sigma exp(logs)
     z = (m + torch.randn_like(m) * torch.exp(logs)) * x_mask # Is here lack of a constent before mask?
+    
     return z, m, logs, x_mask # sampled multi-dim mormal distribution, mean, log of sigma, mask
 
 
@@ -338,7 +340,7 @@ class SynthesizerTrn(nn.Module):
 
     # Posterior Encoder, getting sampled high-dim normal distribution, mean, log of sigma and mask
     z, m_q, logs_q, spec_mask = self.enc_q(spec, spec_lengths, g=g) # Posterior Encoder
-    z_p = self.flow(z, spec_mask, g=g) # Flow, get z^prime, should be a simple distribution
+    z_p = self.flow(z, spec_mask, g=g) # Flow, get z^prime, a multi-dim normal distribution,should with contain content
 
     z_slice, ids_slice = commons.rand_slice_segments(z, spec_lengths, self.segment_size)
     o = self.dec(z_slice, g=g) # Decoder
