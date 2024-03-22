@@ -107,7 +107,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         '''
         
         if self.use_spk:
-            return c, spec, audio_norm, spk
+            return c, spec, audio_norm, spk # c: audio, spec: spectrogram, audio_norm: audio normalization parameters, spk: speaker
         else:
             return c, spec, audio_norm
 

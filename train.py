@@ -62,7 +62,7 @@ def run(rank, n_gpus, hps):
   torch.manual_seed(hps.train.seed)
   torch.cuda.set_device(rank)
 
-  train_dataset = TextAudioSpeakerLoader(hps.data.training_files, hps)
+  train_dataset = TextAudioSpeakerLoader(hps.data.training_files, hps) # load training dataset
   train_sampler = DistributedBucketSampler(
       train_dataset,
       hps.train.batch_size,
@@ -148,12 +148,17 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
           hps.data.n_mel_channels, 
           hps.data.sampling_rate,
           hps.data.mel_fmin, 
-          hps.data.mel_fmax)
+          hps.data.mel_fmax) # convert spectrom to mel spectrogram
 
     with autocast(enabled=hps.train.fp16_run):
       y_hat, ids_slice, z_mask,\
-      (z, z_p, m_p, logs_p, m_q, logs_q) = net_g(c, spec, g=g, mel=mel)
-      
+      (z, z_p, m_p, logs_p, m_q, logs_q) = net_g(c, spec, g=g, mel=mel) # forward
+      # c: audio, spec: spectrogram, g: speaker embedding, mel: mel spectrogram
+      # z_p: high-dim normal distribution, should only contain content information
+      # m_p: prior mean, logs_p: prior log of variance
+      # m_q: posterior mean, logs_q: posterior log of variance
+
+
       y_mel = commons.slice_segments(mel, ids_slice, hps.train.segment_size // hps.data.hop_length)
       y_hat_mel = mel_spectrogram_torch(
           y_hat.squeeze(1), 
@@ -182,10 +187,17 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
       # Generator
       y_d_hat_r, y_d_hat_g, fmap_r, fmap_g = net_d(y, y_hat)
       with autocast(enabled=False):
+        # F1 distance between real and generated mel-spectrogram, multiplied by a factor
         loss_mel = F.l1_loss(y_mel, y_hat_mel) * hps.train.c_mel
+
+        # KL divergence between prior and posterior
+        # prior: mean = m_p, log variance = logs_p
+        # posterior: mean = z_p, log variance = logs_q
         loss_kl = kl_loss(z_p, logs_q, m_p, logs_p, z_mask) * hps.train.c_kl
+
         loss_fm = feature_loss(fmap_r, fmap_g)
         loss_gen, losses_gen = generator_loss(y_d_hat_g)
+        # add loss here
         loss_gen_all = loss_gen + loss_fm + loss_mel + loss_kl
     optim_g.zero_grad()
     scaler.scale(loss_gen_all).backward()
@@ -209,6 +221,7 @@ def train_and_evaluate(rank, epoch, hps, nets, optims, schedulers, scaler, loade
         scalar_dict.update({"loss/g/{}".format(i): v for i, v in enumerate(losses_gen)})
         scalar_dict.update({"loss/d_r/{}".format(i): v for i, v in enumerate(losses_disc_r)})
         scalar_dict.update({"loss/d_g/{}".format(i): v for i, v in enumerate(losses_disc_g)})
+        # add loss record here
         image_dict = { 
             "slice/mel_org": utils.plot_spectrogram_to_numpy(y_mel[0].data.cpu().numpy()),
             "slice/mel_gen": utils.plot_spectrogram_to_numpy(y_hat_mel[0].data.cpu().numpy()), 

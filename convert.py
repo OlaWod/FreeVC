@@ -33,7 +33,7 @@ if __name__ == "__main__":
         hps.train.segment_size // hps.data.hop_length,
         **hps.model).cuda()
     _ = net_g.eval()
-    print("Loading checkpoint...")
+    print("Loading checkpoint...") # load pretrained model
     _ = utils.load_checkpoint(args.ptfile, net_g, None, True)
 
     print("Loading WavLM for content...")

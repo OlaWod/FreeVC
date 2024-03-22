@@ -64,7 +64,10 @@ class Encoder(nn.Module):
     self.gin_channels = gin_channels
 
     self.pre = nn.Conv1d(in_channels, hidden_channels, 1)
+    
+    # WaveNet
     self.enc = modules.WN(hidden_channels, kernel_size, dilation_rate, n_layers, gin_channels=gin_channels)
+    
     self.proj = nn.Conv1d(hidden_channels, out_channels * 2, 1)
 
   def forward(self, x, x_lengths, g=None):
@@ -72,9 +75,11 @@ class Encoder(nn.Module):
     x = self.pre(x) * x_mask
     x = self.enc(x, x_mask, g=g)
     stats = self.proj(x) * x_mask
-    m, logs = torch.split(stats, self.out_channels, dim=1)
-    z = (m + torch.randn_like(m) * torch.exp(logs)) * x_mask
-    return z, m, logs, x_mask
+    m, logs = torch.split(stats, self.out_channels, dim=1) # split to mean and log of sigma
+    
+    # m plus a random tensor (sampled from standard normal distribution, with the same size as m), scaled by the exponential of logs to m
+    z = (m + torch.randn_like(m) * torch.exp(logs)) * x_mask # Is here lack of a constent before mask?
+    return z, m, logs, x_mask # sampled multi-dim mormal distribution, mean, log of sigma, mask
 
 
 class Generator(torch.nn.Module):
@@ -310,9 +315,9 @@ class SynthesizerTrn(nn.Module):
     self.ssl_dim = ssl_dim
     self.use_spk = use_spk
 
-    self.enc_p = Encoder(ssl_dim, inter_channels, hidden_channels, 5, 1, 16)
+    self.enc_p = Encoder(ssl_dim, inter_channels, hidden_channels, 5, 1, 16) # Prior Encoder
     self.dec = Generator(inter_channels, resblock, resblock_kernel_sizes, resblock_dilation_sizes, upsample_rates, upsample_initial_channel, upsample_kernel_sizes, gin_channels=gin_channels)
-    self.enc_q = Encoder(spec_channels, inter_channels, hidden_channels, 5, 1, 16, gin_channels=gin_channels) 
+    self.enc_q = Encoder(spec_channels, inter_channels, hidden_channels, 5, 1, 16, gin_channels=gin_channels) # Posterior Encoder
     self.flow = ResidualCouplingBlock(inter_channels, hidden_channels, 5, 1, 4, gin_channels=gin_channels)
     
     if not self.use_spk:
@@ -327,13 +332,16 @@ class SynthesizerTrn(nn.Module):
     if not self.use_spk:
       g = self.enc_spk(mel.transpose(1,2))
     g = g.unsqueeze(-1)
-      
-    _, m_p, logs_p, _ = self.enc_p(c, c_lengths)
-    z, m_q, logs_q, spec_mask = self.enc_q(spec, spec_lengths, g=g) 
-    z_p = self.flow(z, spec_mask, g=g)
+    
+    # Prior Encoder, getting mean and log of sigma
+    _, m_p, logs_p, _ = self.enc_p(c, c_lengths) 
+
+    # Posterior Encoder, getting sampled high-dim normal distribution, mean, log of sigma and mask
+    z, m_q, logs_q, spec_mask = self.enc_q(spec, spec_lengths, g=g) # Posterior Encoder
+    z_p = self.flow(z, spec_mask, g=g) # Flow, get z^prime, should be a simple distribution
 
     z_slice, ids_slice = commons.rand_slice_segments(z, spec_lengths, self.segment_size)
-    o = self.dec(z_slice, g=g)
+    o = self.dec(z_slice, g=g) # Decoder
     
     return o, ids_slice, spec_mask, (z, z_p, m_p, logs_p, m_q, logs_q)
 
@@ -344,8 +352,8 @@ class SynthesizerTrn(nn.Module):
       g = self.enc_spk.embed_utterance(mel.transpose(1,2))
     g = g.unsqueeze(-1)
 
-    z_p, m_p, logs_p, c_mask = self.enc_p(c, c_lengths)
-    z = self.flow(z_p, c_mask, g=g, reverse=True)
-    o = self.dec(z * c_mask, g=g)
+    z_p, m_p, logs_p, c_mask = self.enc_p(c, c_lengths) # Prior Encoder, get soundwave representation only with content
+    z = self.flow(z_p, c_mask, g=g, reverse=True) # Flow^-1, get soundwave representation with content and speaker
+    o = self.dec(z * c_mask, g=g) # Decoder
     
     return o
