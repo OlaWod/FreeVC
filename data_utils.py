@@ -61,7 +61,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
             spec = spectrogram_torch(audio_norm, self.filter_length,
                 self.sampling_rate, self.hop_length, self.win_length,
                 center=False)
-            spec = torch.squeeze(spec, 0)
+            spec = torch.squeeze(spec, 0) # linear spectrom comes from original audio
             torch.save(spec, spec_filename)
             
         if self.use_spk:
@@ -85,7 +85,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
             '''
             c_filename = filename.replace(".wav", f"_{i}.pt")
             c_filename = c_filename.replace("DUMMY", "dataset/sr/wavlm")
-            c = torch.load(c_filename).squeeze(0)
+            c = torch.load(c_filename).squeeze(0) # the audio input for WavLM is augumented
             
         # 2023.01.10 update: code below can deteriorate model performance
         # I added these code during cleaning up, thinking that it can offer better performance than my provided checkpoints, but actually it does the opposite.
@@ -107,7 +107,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         '''
         
         if self.use_spk:
-            return c, spec, audio_norm, spk # c: audio, spec: spectrogram, audio_norm: audio normalization parameters, spk: speaker
+            return c, spec, audio_norm, spk # c: audio, spec: linear spectrogram, audio_norm: audio normalization parameters, spk: speaker
         else:
             return c, spec, audio_norm
 

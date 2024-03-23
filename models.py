@@ -339,7 +339,7 @@ class SynthesizerTrn(nn.Module):
     _, m_p, logs_p, _ = self.enc_p(c, c_lengths) 
 
     # Posterior Encoder, getting sampled high-dim normal distribution, mean, log of sigma and mask
-    z, m_q, logs_q, spec_mask = self.enc_q(spec, spec_lengths, g=g) # Posterior Encoder
+    z, m_q, logs_q, spec_mask = self.enc_q(spec, spec_lengths, g=g) # Posterior Encoder, using linear spectrogram and speaker embedding
     z_p = self.flow(z, spec_mask, g=g) # Flow, get z^prime, a multi-dim normal distribution,should with contain content
 
     z_slice, ids_slice = commons.rand_slice_segments(z, spec_lengths, self.segment_size)
