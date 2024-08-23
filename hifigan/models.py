@@ -125,7 +125,7 @@ class Generator(torch.nn.Module):
             self.ups.append(
                 weight_norm(
                     ConvTranspose1d(
-                        h.upsample_initial_channel // (2 ** i),
+                        h.upsample_initial_channel // (2**i),
                         h.upsample_initial_channel // (2 ** (i + 1)),
                         k,
                         u,

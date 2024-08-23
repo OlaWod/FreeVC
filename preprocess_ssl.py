@@ -24,22 +24,25 @@ def process(filename):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--sr", type=int, default=16000, help="sampling rate")
-    parser.add_argument("--in_dir", type=str, default="dataset/vctk-16k", help="path to input dir")
-    parser.add_argument("--out_dir", type=str, default="dataset/wavlm", help="path to output dir")
+    parser.add_argument(
+        "--in_dir", type=str, default="dataset/vctk-16k", help="path to input dir"
+    )
+    parser.add_argument(
+        "--out_dir", type=str, default="dataset/wavlm", help="path to output dir"
+    )
     args = parser.parse_args()
-    
+
     os.makedirs(args.out_dir, exist_ok=True)
 
     print("Loading WavLM for content...")
-    checkpoint = torch.load('wavlm/WavLM-Large.pt')
-    cfg = WavLMConfig(checkpoint['cfg'])
+    checkpoint = torch.load("wavlm/WavLM-Large.pt")
+    cfg = WavLMConfig(checkpoint["cfg"])
     cmodel = WavLM(cfg).cuda()
-    cmodel.load_state_dict(checkpoint['model'])
+    cmodel.load_state_dict(checkpoint["model"])
     cmodel.eval()
     print("Loaded WavLM.")
-    
-    filenames = glob(f'{args.in_dir}/*/*.wav', recursive=True)
-    
+
+    filenames = glob(f"{args.in_dir}/*/*.wav", recursive=True)
+
     for filename in tqdm(filenames):
         process(filename)
-    

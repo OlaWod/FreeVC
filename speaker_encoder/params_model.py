@@ -1,4 +1,3 @@
-
 ## Model parameters
 model_hidden_size = 256
 model_embedding_size = 256

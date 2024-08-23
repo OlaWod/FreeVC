@@ -11,18 +11,30 @@ from models import SynthesizerTrn
 from mel_processing import mel_spectrogram_torch
 from speaker_encoder.voice_encoder import SpeakerEncoder
 import logging
-logging.getLogger('numba').setLevel(logging.WARNING)
+
+logging.getLogger("numba").setLevel(logging.WARNING)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--hpfile", type=str, default="configs/freevc.json", help="path to json config file")
-    parser.add_argument("--ptfile", type=str, default="checkpoints/freevc.pth", help="path to pth file")
-    parser.add_argument("--txtpath", type=str, default="convert.txt", help="path to txt file")
-    parser.add_argument("--outdir", type=str, default="output/freevc", help="path to output dir")
+    parser.add_argument(
+        "--hpfile",
+        type=str,
+        default="configs/freevc.json",
+        help="path to json config file",
+    )
+    parser.add_argument(
+        "--ptfile", type=str, default="checkpoints/freevc.pth", help="path to pth file"
+    )
+    parser.add_argument(
+        "--txtpath", type=str, default="convert.txt", help="path to txt file"
+    )
+    parser.add_argument(
+        "--outdir", type=str, default="output/freevc", help="path to output dir"
+    )
     parser.add_argument("--use_timestamp", default=False, action="store_true")
     args = parser.parse_args()
-    
+
     os.makedirs(args.outdir, exist_ok=True)
     hps = utils.get_hparams_from_file(args.hpfile)
 
@@ -30,17 +42,18 @@ if __name__ == "__main__":
     net_g = SynthesizerTrn(
         hps.data.filter_length // 2 + 1,
         hps.train.segment_size // hps.data.hop_length,
-        **hps.model).cuda()
+        **hps.model,
+    ).cuda()
     _ = net_g.eval()
     print("Loading checkpoint...")
     _ = utils.load_checkpoint(args.ptfile, net_g, None)
 
     print("Loading WavLM for content...")
     cmodel = utils.get_cmodel(0)
-    
+
     if hps.model.use_spk:
         print("Loading speaker encoder...")
-        smodel = SpeakerEncoder('speaker_encoder/ckpt/pretrained_bak_5805000.pt')
+        smodel = SpeakerEncoder("speaker_encoder/ckpt/pretrained_bak_5805000.pt")
 
     print("Processing text...")
     titles, srcs, tgts = [], [], []
@@ -64,20 +77,20 @@ if __name__ == "__main__":
             else:
                 wav_tgt = torch.from_numpy(wav_tgt).unsqueeze(0).cuda()
                 mel_tgt = mel_spectrogram_torch(
-                    wav_tgt, 
+                    wav_tgt,
                     hps.data.filter_length,
                     hps.data.n_mel_channels,
                     hps.data.sampling_rate,
                     hps.data.hop_length,
                     hps.data.win_length,
                     hps.data.mel_fmin,
-                    hps.data.mel_fmax
+                    hps.data.mel_fmax,
                 )
             # src
             wav_src, _ = librosa.load(src, sr=hps.data.sampling_rate)
             wav_src = torch.from_numpy(wav_src).unsqueeze(0).cuda()
             c = utils.get_content(cmodel, wav_src)
-            
+
             if hps.model.use_spk:
                 audio = net_g.infer(c, g=g_tgt)
             else:
@@ -85,7 +98,10 @@ if __name__ == "__main__":
             audio = audio[0][0].data.cpu().float().numpy()
             if args.use_timestamp:
                 timestamp = time.strftime("%m-%d_%H-%M", time.localtime())
-                write(os.path.join(args.outdir, "{}.wav".format(timestamp+"_"+title)), 24000, audio)
+                write(
+                    os.path.join(args.outdir, "{}.wav".format(timestamp + "_" + title)),
+                    24000,
+                    audio,
+                )
             else:
                 write(os.path.join(args.outdir, f"{title}.wav"), 24000, audio)
-            
