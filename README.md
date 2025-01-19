@@ -4,6 +4,7 @@
 [![githubio](https://img.shields.io/static/v1?message=Audio%20Samples&logo=Github&labelColor=grey&color=blue&logoColor=white&label=%20&style=flat)](https://olawod.github.io/FreeVC-demo/)
 ![GitHub Repo stars](https://img.shields.io/github/stars/OlaWod/FreeVC)
 ![GitHub](https://img.shields.io/github/license/OlaWod/FreeVC)
+[<img src="https://api.gitsponsors.com/api/badge/img?id=558217726" height="20">](https://api.gitsponsors.com/api/badge/link?p=+6XIirdeu/eoPCWVBoGRJla8MaVR3Qf3RQWVBX7BtJ91pIMwSdiJ2tp72/UUf1qw)
 
 In this [paper](https://arxiv.org/abs/2210.15418), we adopt the end-to-end framework of [VITS](https://arxiv.org/abs/2106.06103) for high-quality waveform reconstruction, and propose strategies for clean content information extraction without text annotation. We disentangle content information by imposing an information bottleneck to [WavLM](https://arxiv.org/abs/2110.13900) features, and propose the **spectrogram-resize** based data augmentation to improve the purity of extracted content information.
 
